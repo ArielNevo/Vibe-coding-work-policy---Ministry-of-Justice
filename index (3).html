@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מצפן ה־Vibe Coding</title>
+<meta name="description" content="מצפן לעובדי משרד המשפטים: איפה אני נמצא, מה אני יכול לקבל, ואיזה כלי יעזור לי לבנות בבטחה בעזרת בינה מלאכותית.">
+<style>
+/* ===================================================================
+   קונפיגורציה: כשהטופס הרשמי במאנדי יהיה מוכן, מדביקים את הקישור
+   בשורה MONDAY_FORM_URL שבתחתית הקובץ (בתוך <script>).
+   =================================================================== */
+
+/* Layout: official letterhead band, then one reading column (max 1040px).
+   The compass dial is the single bold element; everything else is quiet. */
+:root {
+  --paper: #F4F6F8;
+  --surface: #FFFFFF;
+  --ink: #13243A;
+  --muted: #566577;
+  --rule: #D5DCE3;
+  --state: #1E4F8F;          /* official blue: links, focus, level ladder */
+  --state-soft: #E4ECF6;
+  --lv1: #E4ECF6; --lv2: #C9D9EE; --lv3: #9DB9DE; --lv4: #1E4F8F;
+  --lv-ink-4: #FFFFFF;
+  --go: #2E7D32;  --go-soft: #E7F3E8;
+  --wait: #A87400; --wait-soft: #FFF3D6;
+  --stop: #C0392B; --stop-soft: #FBE7E4;
+  --f-display: "David", "David CLM", "Frank Ruehl", "FrankRuehl", "Times New Roman", serif;
+  --f-body: "Segoe UI", "Arial", "Helvetica Neue", system-ui, sans-serif;
+  --radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E1724; --surface: #15212F; --ink: #E6ECF2; --muted: #9AAABB; --rule: #2A3A4C;
+    --state: #8DB4E8; --state-soft: #1B2D45;
+    --lv1: #1B2D45; --lv2: #22406A; --lv3: #2F5B93; --lv4: #8DB4E8; --lv-ink-4: #0E1724;
+    --go: #6CC774; --go-soft: #15301A; --wait: #E9B949; --wait-soft: #33290F; --stop: #F0796B; --stop-soft: #3A1B17;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E1724; --surface: #15212F; --ink: #E6ECF2; --muted: #9AAABB; --rule: #2A3A4C;
+  --state: #8DB4E8; --state-soft: #1B2D45;
+  --lv1: #1B2D45; --lv2: #22406A; --lv3: #2F5B93; --lv4: #8DB4E8; --lv-ink-4: #0E1724;
+  --go: #6CC774; --go-soft: #15301A; --wait: #E9B949; --wait-soft: #33290F; --stop: #F0796B; --stop-soft: #3A1B17;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--f-body); font-size: 17px; line-height: 1.65;
+}
+.gutter { padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1040px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--f-display); color: var(--ink); margin: 0; line-height: 1.2; text-wrap: balance; font-weight: 700; }
+h1 { font-size: clamp(2.3rem, 6vw, 3.6rem); }
+h2 { font-size: clamp(1.6rem, 3.6vw, 2.1rem); }
+h3 { font-size: 1.25rem; }
+p { margin: 0; }
+a { color: var(--state); }
+:focus-visible { outline: 3px solid var(--state); outline-offset: 2px; border-radius: 3px; }
+button { font: inherit; color: inherit; }
+
+/* ---------- letterhead ---------- */
+.letterhead { background: var(--surface); border-bottom: 3px solid var(--ink); }
+.letterhead .wrap { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; padding-block: 14px; }
+.lh-org { font-family: var(--f-display); line-height: 1.25; }
+.lh-org b { font-size: 1.15rem; display: block; }
+.lh-org span { color: var(--muted); font-size: .95rem; }
+.lh-meta { text-align: left; color: var(--muted); font-size: .9rem; line-height: 1.35; }
+.lh-meta b { color: var(--ink); }
+
+/* ---------- nav ---------- */
+nav.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--rule); }
+nav.tabs ul { list-style: none; margin: 0 auto; padding: 0; display: flex; gap: 4px; overflow-x: auto; max-width: 1040px; scrollbar-width: none; }
+nav.tabs a { display: block; padding: 12px 14px; text-decoration: none; color: var(--muted); white-space: nowrap; border-bottom: 3px solid transparent; font-size: .97rem; }
+nav.tabs a:hover { color: var(--ink); }
+nav.tabs a.on { color: var(--ink); border-bottom-color: var(--state); font-weight: 600; }
+
+main { display: grid; gap: 72px; padding-block: 40px 80px; }
+section { scroll-margin-top: 64px; display: grid; gap: 20px; }
+.lead { color: var(--muted); max-width: 64ch; font-size: 1.05rem; }
+
+/* ---------- hero with compass ---------- */
+.hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; align-items: center; }
+@media (max-width: 780px) { .hero { grid-template-columns: 1fr; } }
+.hero-text { display: grid; gap: 16px; }
+.hero-text .lead { font-size: 1.12rem; }
+.cta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: var(--radius); border: 1.5px solid var(--state); background: var(--state); color: var(--surface); text-decoration: none; font-weight: 600; cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--state); }
+.btn:hover { filter: brightness(1.08); }
+.btn[aria-disabled="true"] { opacity: .55; cursor: not-allowed; filter: none; }
+
+.dial { width: 100%; max-width: 420px; justify-self: center; }
+.dial svg { width: 100%; height: auto; display: block; overflow: visible; }
+.dial .seg { fill: none; stroke-width: 26; }
+.dial .seg.g { stroke: var(--go); } .dial .seg.y { stroke: var(--wait); } .dial .seg.r { stroke: var(--stop); }
+.dial .tick { stroke: var(--surface); stroke-width: 4; }
+.dial .lbl { font-family: var(--f-display); font-size: 17px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
+.dial .needle { transform-origin: 160px 170px; transform: rotate(var(--deg, 0deg)); transition: transform 1.1s cubic-bezier(.34, 1.4, .5, 1); }
+.dial .needle line { stroke: var(--ink); stroke-width: 5; stroke-linecap: round; }
+.dial .hub { fill: var(--ink); }
+.dial .hub-in { fill: var(--surface); }
+.dial-cap { text-align: center; font-family: var(--f-display); font-size: 1.25rem; margin-top: 4px; min-height: 1.6em; }
+.load-sweep .needle { animation: sweep 2.2s cubic-bezier(.45, 0, .2, 1) .3s both; }
+@keyframes sweep { 0% { transform: rotate(-78deg); } 45% { transform: rotate(78deg); } 75% { transform: rotate(-12deg); } 100% { transform: rotate(0deg); } }
+@media (prefers-reduced-motion: reduce) { .load-sweep .needle { animation: none; } .dial .needle { transition: none; } }
+
+/* ---------- wizard ---------- */
+.wizard { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.wiz-top { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--rule); gap: 12px; }
+.progress { display: flex; gap: 6px; }
+.progress i { width: 34px; height: 5px; border-radius: 3px; background: var(--rule); transition: background .3s; }
+.progress i.done { background: var(--state); }
+.wiz-count { color: var(--muted); font-size: .92rem; }
+.stage { position: relative; min-height: 250px; }
+.q { padding: 24px 20px 26px; display: grid; gap: 16px; }
+.q[hidden] { display: none; }
+.q legend, .q .qt { font-family: var(--f-display); font-size: 1.5rem; font-weight: 700; padding: 0; }
+.q .qh { color: var(--muted); margin-top: -8px; }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.opt { text-align: right; border: 1.5px solid var(--rule); background: var(--paper); border-radius: 8px; padding: 14px 16px; cursor: pointer; display: grid; gap: 2px; transition: border-color .15s, transform .15s; }
+.opt:hover { border-color: var(--state); }
+.opt:active { transform: scale(.985); }
+.opt b { font-size: 1.02rem; }
+.opt span { color: var(--muted); font-size: .9rem; line-height: 1.45; }
+.opt.picked { border-color: var(--state); background: var(--state-soft); }
+.enter { animation: enter .38s ease-out both; }
+@keyframes enter { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .enter { animation: none; } }
+.wiz-nav { display: flex; justify-content: space-between; padding: 0 20px 18px; }
+.linkbtn { background: none; border: 0; color: var(--state); cursor: pointer; padding: 6px 0; text-decoration: underline; text-underline-offset: 3px; }
+
+/* result */
+.result { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 28px; padding: 24px 20px 28px; align-items: start; }
+@media (max-width: 720px) { .result { grid-template-columns: 1fr; } }
+.verdict { border-radius: 8px; padding: 16px 18px; display: grid; gap: 6px; }
+.verdict.g { background: var(--go-soft); } .verdict.y { background: var(--wait-soft); } .verdict.r { background: var(--stop-soft); }
+.verdict .vt { font-family: var(--f-display); font-size: 1.7rem; font-weight: 700; }
+.verdict.g .vt { color: var(--go); } .verdict.y .vt { color: var(--wait); } .verdict.r .vt { color: var(--stop); }
+.res-body { display: grid; gap: 18px; }
+.kv h3 { font-size: 1.08rem; margin-bottom: 6px; }
+.kv ul { margin: 0; padding-inline-start: 1.2em; display: grid; gap: 4px; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .9rem; font-weight: 600; background: var(--state-soft); color: var(--state); }
+
+/* ---------- ladder ---------- */
+.ladder { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; align-items: end; }
+@media (max-width: 820px) { .ladder { grid-template-columns: 1fr 1fr; align-items: stretch; } }
+@media (max-width: 460px) { .ladder { grid-template-columns: 1fr; } }
+.rung { text-align: right; border: 0; border-radius: 8px 8px 4px 4px; padding: 16px; cursor: pointer; display: grid; gap: 6px; align-content: start; transition: transform .2s; color: var(--ink); }
+.rung:hover { transform: translateY(-3px); }
+.rung[aria-expanded="true"] { outline: 3px solid var(--state); outline-offset: 2px; }
+.rung.l1 { background: var(--lv1); min-height: 150px; } .rung.l2 { background: var(--lv2); min-height: 190px; }
+.rung.l3 { background: var(--lv3); min-height: 230px; } .rung.l4 { background: var(--lv4); min-height: 270px; color: var(--lv-ink-4); }
+@media (max-width: 820px) { .rung.l1, .rung.l2, .rung.l3, .rung.l4 { min-height: 0; } }
+.rung .rn { font-family: var(--f-display); font-size: 1.55rem; font-weight: 700; }
+.rung .rs { font-size: .92rem; opacity: .85; }
+.rung-detail { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+.rung-detail h3 { font-size: 1.05rem; margin-bottom: 6px; }
+.rung-detail ul { margin: 0; padding-inline-start: 1.2em; display: grid; gap: 4px; }
+
+/* ---------- tool finder ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px solid var(--rule); background: var(--surface); border-radius: 999px; padding: 8px 16px; cursor: pointer; }
+.chip:hover { border-color: var(--state); }
+.chip[aria-pressed="true"] { background: var(--state); border-color: var(--state); color: var(--surface); }
+.tool { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 22px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; }
+@media (max-width: 720px) { .tool { grid-template-columns: 1fr; } }
+.tool .tname { font-family: var(--f-display); font-size: 1.7rem; font-weight: 700; }
+.tool .tmeta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.light { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: .92rem; }
+.light::before { content: ""; width: 11px; height: 11px; border-radius: 50%; background: currentColor; }
+.light.g { color: var(--go); } .light.y { color: var(--wait); } .light.r { color: var(--stop); }
+.tip { border-inline-start: 4px solid var(--state); padding: 4px 12px; }
+.warn { border-inline-start: 4px solid var(--wait); padding: 4px 12px; }
+.tool h3 { font-size: 1.02rem; margin-bottom: 4px; }
+.small { font-size: .88rem; color: var(--muted); }
+
+/* ---------- traffic rules ---------- */
+.traffic { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .traffic { grid-template-columns: 1fr; } }
+.tl { border-radius: 10px; padding: 18px 20px; border-top: 6px solid; display: grid; gap: 10px; align-content: start; }
+.tl.g { background: var(--go-soft); border-color: var(--go); } .tl.y { background: var(--wait-soft); border-color: var(--wait); } .tl.r { background: var(--stop-soft); border-color: var(--stop); }
+.tl h3 { font-size: 1.35rem; }
+.tl.g h3 { color: var(--go); } .tl.y h3 { color: var(--wait); } .tl.r h3 { color: var(--stop); }
+.tl ul { margin: 0; padding-inline-start: 1.2em; display: grid; gap: 6px; }
+
+/* ---------- path ---------- */
+.path { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; counter-reset: s; }
+@media (max-width: 820px) { .path { grid-template-columns: 1fr; } }
+.path li { position: relative; padding: 52px 14px 10px; text-align: center; counter-increment: s; }
+.path li::before { content: counter(s); position: absolute; top: 0; inset-inline-start: 50%; transform: translateX(50%); width: 40px; height: 40px; border-radius: 50%; background: var(--surface); border: 2px solid var(--state); color: var(--state); font-weight: 700; display: grid; place-items: center; font-family: var(--f-display); font-size: 1.2rem; z-index: 1; }
+.path li::after { content: ""; position: absolute; top: 20px; inset-inline-start: 50%; width: 100%; height: 2px; background: var(--rule); }
+.path li:last-child::after { display: none; }
+.path li.gate::before { border-color: var(--wait); color: var(--wait); }
+.path b { display: block; font-family: var(--f-display); font-size: 1.2rem; }
+.path span { color: var(--muted); font-size: .92rem; }
+@media (max-width: 820px) {
+  .path li { text-align: right; padding: 4px 56px 18px 0; }
+  .path li::before { inset-inline-start: 0; transform: none; }
+  .path li::after { top: 40px; inset-inline-start: 19px; width: 2px; height: calc(100% - 40px); }
+}
+
+/* ---------- contacts ---------- */
+.contacts { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.crow { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); gap: 16px; padding: 14px 20px; border-bottom: 1px solid var(--rule); }
+.crow:last-child { border-bottom: 0; }
+@media (max-width: 600px) { .crow { grid-template-columns: 1fr; gap: 2px; } }
+.crow b { font-weight: 600; }
+.join { background: var(--state-soft); border-radius: 10px; padding: 22px; display: grid; gap: 12px; }
+.privacy { display: flex; gap: 10px; align-items: flex-start; color: var(--muted); font-size: .95rem; }
+
+footer { border-top: 1px solid var(--rule); padding-block: 22px 40px; color: var(--muted); font-size: .88rem; }
+footer .wrap { display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+
+<header class="letterhead gutter">
+  <div class="wrap">
+    <div class="lh-org"><b>מדינת ישראל · משרד המשפטים</b><span>יחידת ה־CDO, חטיבת תכנון, מדיניות ואסטרטגיה</span></div>
+    <div class="lh-meta"><b>טיוטה לדיון</b><br>אוקטובר 2026</div>
+  </div>
+</header>
+
+<nav class="tabs gutter" aria-label="ניווט באתר">
+  <ul>
+    <li><a href="#start" class="on">איפה אני?</a></li>
+    <li><a href="#levels">מה אני יכול לקבל</a></li>
+    <li><a href="#tools">איזה כלי יעזור לי</a></li>
+    <li><a href="#rules">כללי הרמזור</a></li>
+    <li><a href="#path">מהרעיון לכלי</a></li>
+    <li><a href="#contact">למי פונים</a></li>
+  </ul>
+</nav>
+
+<main class="gutter">
+<div class="wrap" style="display:grid; gap:72px;">
+
+  <!-- HERO + WIZARD -->
+  <section id="start" aria-labelledby="h-start">
+    <div class="hero">
+      <div class="hero-text">
+        <h1 id="h-start">מצפן ה־Vibe Coding</h1>
+        <p class="lead">רוצים לבנות כלי בעזרת בינה מלאכותית, כמו מחשבון, טופס או לוח נתונים, בלי לדעת לתכנת? ענו על ארבע שאלות קצרות, ותראו איפה אתם נמצאים, מה מותר לכם כבר עכשיו, ולמי פונים כדי להתקדם.</p>
+        <div class="cta-row">
+          <a class="btn" href="#wizard">מתחילים</a>
+          <a class="btn ghost" href="#rules">רק את הכללים</a>
+        </div>
+      </div>
+      <div class="dial load-sweep" id="dial" aria-hidden="true">
+        <svg viewBox="0 0 320 200">
+          <path class="seg r" d="M 40 170 A 120 120 0 0 1 100 66.08"/>
+          <path class="seg y" d="M 100 66.08 A 120 120 0 0 1 220 66.08"/>
+          <path class="seg g" d="M 220 66.08 A 120 120 0 0 1 280 170"/>
+          <line class="tick" x1="100" y1="66.08" x2="91" y2="50.5"/>
+          <line class="tick" x1="220" y1="66.08" x2="229" y2="50.5"/>
+          <text class="lbl" x="44" y="196">אסור</text>
+          <text class="lbl" x="160" y="22">מותנה</text>
+          <text class="lbl" x="276" y="196">מותר</text>
+          <g class="needle" id="needle"><line x1="160" y1="170" x2="160" y2="78"/></g>
+          <circle class="hub" cx="160" cy="170" r="13"/><circle class="hub-in" cx="160" cy="170" r="5"/>
+        </svg>
+        <p class="dial-cap" id="dialcap">ענו על השאלות, והמחוג יראה לאן הכלי שלכם שייך</p>
+      </div>
+    </div>
+
+    <div class="wizard" id="wizard">
+      <div class="wiz-top">
+        <div class="progress" id="progress" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <span class="wiz-count" id="wizcount" aria-live="polite">שאלה 1 מתוך 4</span>
+      </div>
+      <div class="stage" id="stage"></div>
+      <div class="wiz-nav"><button class="linkbtn" id="back" hidden>חזרה לשאלה הקודמת</button><button class="linkbtn" id="restart" hidden>מתחילים מחדש</button></div>
+    </div>
+    <p class="privacy small">הממשק הזה לא אוסף ולא שומר שום מידע. התשובות נשארות על המסך שלכם בלבד.</p>
+  </section>
+
+  <!-- LEVELS -->
+  <section id="levels" aria-labelledby="h-levels">
+    <h2 id="h-levels">מה אני יכול לקבל</h2>
+    <p class="lead">ככל שעוברים הכשרה בהיבטי סייבר, מקבלים כלים חזקים יותר. ההכשרה לבדה אינה פותחת גישה למידע רגיש: את זה קובעים סוג המידע והכלי. בחרו רמה כדי לראות את הפרטים.</p>
+    <div class="ladder" id="ladder"></div>
+    <div class="rung-detail" id="rungdetail" aria-live="polite"></div>
+  </section>
+
+  <!-- TOOLS -->
+  <section id="tools" aria-labelledby="h-tools">
+    <h2 id="h-tools">איזה כלי יעזור לי</h2>
+    <p class="lead">בחרו מה אתם רוצים לעשות. הכלים כאן הם דוגמאות, ובכפוף לרשימת הכלים המאושרים במשרד. אם כלי לא מופיע ברשימה המאושרת, שאלו את מוביל ה־AI ביחידה.</p>
+    <div class="chips" id="chips" role="group" aria-label="סוג המשימה"></div>
+    <div class="tool" id="tool" aria-live="polite"></div>
+  </section>
+
+  <!-- RULES -->
+  <section id="rules" aria-labelledby="h-rules">
+    <h2 id="h-rules">כללי הרמזור</h2>
+    <div class="traffic">
+      <div class="tl g"><h3>מותר</h3><ul>
+        <li>שימוש בכלים הארגוניים המאושרים, כגון JustAIBot ו־Google Workspace.</li>
+        <li>אב-טיפוס על מידע פומבי או על מידע לדוגמה.</li>
+        <li>כלי אישי שאינו מחובר למערכות המשרד.</li>
+        <li>עבודה בארגז חול או בעמדות מעבדת ה־AI.</li></ul></div>
+      <div class="tl y"><h3>מותנה ברישום ואישור</h3><ul>
+        <li>עבודה על נתונים אמיתיים, גם אם הוסרו מהם פרטים מזהים.</li>
+        <li>שיתוף הכלי עם אחרים מחוץ לצוות.</li>
+        <li>חיבור הכלי למערכת או למאגר של המשרד, לקריאה בלבד.</li>
+        <li>התקנת תוסף או רכיב, רק מהרשימה המאושרת.</li>
+        <li>כלי שמבצע פעולות בעצמו, בתוך ארגז חול.</li></ul></div>
+      <div class="tl r"><h3>אסור</h3><ul>
+        <li>הזנת מידע אישי, חסוי או חקירתי לכלי שאינו מאושר.</li>
+        <li>הזנת סיסמאות או קודי גישה, בכל כלי.</li>
+        <li>הורדת תוספים, "סקילים" או ספריות קוד ממקור לא מוכר.</li>
+        <li>כלי שפועל לבד במערכות המשרד בלי אישור אדם.</li></ul></div>
+    </div>
+    <p class="small">באדום אין "בינתיים": אם נראה לכם שאתם צריכים לעשות משהו מהרשימה האדומה, פנו ליחידת ה־CDO ונמצא יחד דרך מאושרת.</p>
+  </section>
+
+  <!-- PATH -->
+  <section id="path" aria-labelledby="h-path">
+    <h2 id="h-path">מהרעיון לכלי של המשרד</h2>
+    <p class="lead">כלי שמתחיל אצלכם יכול להפוך לכלי של המשרד כולו. כך זה עובד:</p>
+    <ol class="path">
+      <li><b>רישום</b><span>כרטיס כלי קצר: מי הבעלים, מה המטרה, על איזה מידע.</span></li>
+      <li><b>אב-טיפוס</b><span>בונים במסלול הירוק, על מידע לדוגמה.</span></li>
+      <li class="gate"><b>בקשת קידום</b><span>לפני כל צעד צהוב: טופס ובדיקה אוטומטית של הקוד.</span></li>
+      <li class="gate"><b>ועדת קידום</b><span>יחידת ה־CDO, אבטחת מידע ופרטיות. מציגים כמה זמן הכלי חוסך.</span></li>
+      <li><b>הטמעה</b><span>מסירה לאגף הטכנולוגיה, רישום במאגר הכלים וחידוש שנתי.</span></li>
+    </ol>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" aria-labelledby="h-contact">
+    <h2 id="h-contact">למי פונים</h2>
+    <div class="join">
+      <h3>רוצים להצטרף כמאיצי AI?</h3>
+      <p>פנו למוביל ה־AI ביחידה שלכם או ליחידת ה־CDO. ההצטרפות כוללת הדרכה קצרה ואישור, ופותחת כלים מתקדמים יותר ועבודה בעמדות מעבדת ה־AI.</p>
+      <div class="cta-row"><a class="btn" id="formlink" href="#" aria-disabled="true">הטופס הרשמי יפורסם בקרוב</a></div>
+    </div>
+    <div class="contacts">
+      <div class="crow"><b>רעיון לכלי או שאלה מקצועית</b><span>מוביל ה־AI ביחידה. בהיעדרו, יחידת ה־CDO.</span></div>
+      <div class="crow"><b>חשש לדליפת מידע או תוסף חשוד</b><span>אבטחת מידע, מיד. דיווח בזמן אינו מוביל לסנקציה.</span></div>
+      <div class="crow"><b>שאלה על מידע אישי</b><span>הממונה על הגנת הפרטיות במשרד.</span></div>
+      <div class="crow"><b>הטמעת כלי במערכות המשרד</b><span>יחידת ה־CDO, שמתאמת עם אגף הטכנולוגיה (טד"ם).</span></div>
+      <div class="crow"><b>כבר בניתי כלי ולא דיווחתי</b><span>מוביל ה־AI ביחידה. כלי שמוגש לבחינה יכול להפוך לכלי של המשרד.</span></div>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<footer class="gutter">
+  <div class="wrap">
+    <p>המצפן נשען על המסמך "הצעה ליישום של ״תפיסת הניהול״ על אתגרי סייבר ב־Vibe Coding" ועל ההנחיות לעובדים. כלים מוזכרים כדוגמה ובכפוף לרשימת הכלים המאושרים.</p>
+    <p>המצפן הוא כלי הכוונה ואינו מחליף אישור של הגורמים המוסמכים.</p>
+  </div>
+</footer>
+
+<script>
+/* ==== קונפיגורציה ==== */
+const MONDAY_FORM_URL = ""; // הדביקו כאן את הקישור לטופס במאנדי, למשל "https://forms.monday.com/..."
+
+(function () {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const $ = (s, el = document) => el.querySelector(s);
+
+  /* ---------- form link ---------- */
+  const fl = $("#formlink");
+  if (MONDAY_FORM_URL) {
+    fl.href = MONDAY_FORM_URL; fl.target = "_blank"; fl.rel = "noopener";
+    fl.removeAttribute("aria-disabled"); fl.textContent = "לטופס ההצטרפות הרשמי";
+  } else {
+    fl.addEventListener("click", (e) => e.preventDefault());
+  }
+
+  /* ---------- levels data ---------- */
+  const LEVELS = [
+    { id: 0, name: "עובד", who: "כל עובדי המשרד",
+      get: ["כלים ארגוניים מאושרים, כגון JustAIBot ו־Google Workspace", "ניסוח, סיכום, נוסחאות וניתוח טבלאות פשוט"],
+      need: ["לומדת אבטחת מידע בבינה מלאכותית"],
+      next: "רוצים לבנות יותר? בקשו להצטרף כמאיצי AI." },
+    { id: 1, name: "מאיץ AI", who: "לפי בקשה",
+      get: ["כלים מתקדמים יותר לבנייה בלי קוד, כמו אפליקציות קטנות, לוחות נתונים ואוטומציות", "עבודה בעמדות ייעודיות במעבדת ה־AI", "על מידע פומבי בלבד ובלי חיבור למערכות"],
+      need: ["בקשה, הדרכה ואישור"],
+      next: "רוצים לעבוד על נתונים אמיתיים של היחידה? זה התפקיד של מוביל ה־AI." },
+    { id: 2, name: "מוביל AI", who: "יחידתי",
+      get: ["ארגזי חול (פנימיים או בנימבוס) לנתונים לדוגמה ולנתונים שאושרו", "כלים לניתוח נתונים בקוד ולבניית אב-טיפוס", "ליווי מקצועי של יחידת ה־CDO"],
+      need: ["הכשרת סייבר ייעודית"],
+      next: "מוביל ה־AI מלווה את המאיצים ביחידה ומפנה כלים להטמעה." },
+    { id: 3, name: "עובדי טד\"ם", who: "אגף הטכנולוגיה",
+      get: ["גישה לכלים מתקדמים, כולל במקרים מסוימים במערכות הארגוניות", "פיתוח, הקשחה והטמעה בתהליך מלא"],
+      need: ["הכשרות שוטפות"],
+      next: "כלים שעוברים את ועדת הקידום מגיעים לכאן להטמעה." },
+  ];
+
+  /* ---------- wizard ---------- */
+  const QS = [
+    { key: "lvl", t: "מה ההכשרה שלכם?", h: "אם אינכם בטוחים, בחרו באפשרות הראשונה.",
+      o: [["עדיין לא עברתי הכשרה", "או שעברתי רק את הלומדה", 0], ["מאיץ AI", "עברתי הדרכה וקיבלתי אישור", 1], ["מוביל AI ביחידה", "עברתי הכשרת סייבר ייעודית", 2], ["עובד טד\"ם", "אגף הטכנולוגיה", 3]] },
+    { key: "data", t: "על איזה מידע הכלי יעבוד?", h: "המידע הרגיש ביותר שהכלי ייגע בו.",
+      o: [["מידע פומבי או מידע לדוגמה", "חוקים, נתונים מפורסמים, טבלה שהמצאתם", 0], ["נתונים אמיתיים בלי פרטים מזהים", "למשל סטטיסטיקה של תיקים", 1], ["מידע אישי, חסוי או חקירתי", "שמות, תעודות זהות, חומרי תיק", 2]] },
+    { key: "who", t: "מי ישתמש בכלי?", h: "",
+      o: [["אני והצוות הקרוב", "", 0], ["היחידה שלי", "", 1], ["כל המשרד או הציבור", "", 2]] },
+    { key: "act", t: "מה הכלי עושה?", h: "בחרו את האפשרות שמתארת את הכלי הכי טוב.",
+      o: [["מחשב, מסכם או מציג", "בלי חיבור למערכות", 0], ["קורא נתונים ממערכת של המשרד", "רק קורא, לא משנה", 1], ["פועל לבד: כותב, שולח או מעדכן", "למשל שולח מיילים או מעדכן רשומות", 2], ["צריך תוסף או רכיב שמצאתי ברשת", "\"סקיל\", תוסף, ספריית קוד", 3]] },
+  ];
+  const ans = {};
+  let step = 0;
+  const stage = $("#stage"), back = $("#back"), restart = $("#restart");
+  const needle = $("#needle"), dial = $("#dial"), cap = $("#dialcap");
+
+  function setNeedle(deg, text) {
+    dial.classList.remove("load-sweep");
+    needle.style.setProperty("--deg", deg + "deg");
+    cap.textContent = text;
+  }
+
+  function renderQ() {
+    const q = QS[step];
+    $("#wizcount").textContent = "שאלה " + (step + 1) + " מתוך " + QS.length;
+    [...$("#progress").children].forEach((i, n) => i.classList.toggle("done", n < step));
+    stage.innerHTML = "";
+    const f = document.createElement("div");
+    f.className = "q enter"; f.setAttribute("role", "group"); f.setAttribute("aria-labelledby", "qt" + step);
+    f.innerHTML = '<p class="qt" id="qt' + step + '">' + q.t + "</p>" + (q.h ? '<p class="qh">' + q.h + "</p>" : "");
+    const g = document.createElement("div"); g.className = "opts";
+    q.o.forEach(([b, s, v]) => {
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.className = "opt" + (ans[q.key] === v ? " picked" : "");
+      btn.innerHTML = "<b>" + b + "</b>" + (s ? "<span>" + s + "</span>" : "");
+      btn.addEventListener("click", () => { ans[q.key] = v; step++; step < QS.length ? renderQ() : renderResult(); });
+      g.appendChild(btn);
+    });
+    f.appendChild(g); stage.appendChild(f);
+    back.hidden = step === 0; restart.hidden = true;
+    if (step > 0) f.querySelector(".opt").focus({ preventScroll: true });
+  }
+
+  function evaluate(a) {
+    const lv = a.lvl;
+    // required level: 0 עובד, 1 מאיץ, 2 מוביל, 3 טד"ם
+    let req = 0; const why = [];
+    if (a.data === 1) { req = Math.max(req, 2); why.push("נתונים אמיתיים"); }
+    if (a.data === 2) { req = Math.max(req, 3); why.push("מידע אישי, חסוי או חקירתי"); }
+    if (a.who === 1) { why.push("שיתוף עם היחידה"); }
+    if (a.who === 2) { req = Math.max(req, 3); why.push("שימוש בכל המשרד או בציבור"); }
+    if (a.act === 1) { req = Math.max(req, 2); why.push("קריאה ממערכת"); }
+    if (a.act === 2) { req = Math.max(req, 3); why.push("כלי שפועל לבד"); }
+    if (a.act === 0 && a.data === 0 && a.who === 0) { req = Math.max(req, lv >= 1 ? 1 : 0); }
+
+    let color = "g";
+    if (a.act === 3) color = "r";
+    else if (a.data === 2 && lv < 3) color = "r";
+    else if (a.act === 2 && lv < 3) color = "r";
+    else if (a.data > 0 || a.who > 0 || a.act > 0 || req > lv) color = "y";
+    return { lv, req, color, why };
+  }
+
+  function renderResult() {
+    [...$("#progress").children].forEach((i) => i.classList.add("done"));
+    $("#wizcount").textContent = "התוצאה";
+    const r = evaluate(ans);
+    const L = LEVELS[r.lv], R = LEVELS[r.req];
+    const T = { g: ["מותר", "אפשר להתחיל כבר עכשיו", 58], y: ["מותנה ברישום ואישור", "אפשר להתקדם, דרך המסלול המסודר", 0], r: ["אסור במסלול עצמאי", "צריך דרך אחרת, ויש כזו", -58] }[r.color];
+    setNeedle(T[2], T[0]);
+
+    let now = [], before = [], who = [];
+    if (r.color === "g") {
+      now = ["לבנות אב-טיפוס בכלים הארגוניים המאושרים", "לבדוק את התוצאות לפני שמסתמכים עליהן"];
+      before = ["אם תרצו לשתף את הכלי עם אחרים, רושמים אותו קודם בכרטיס כלי"];
+      who = ["שאלות ורעיונות: מוביל ה־AI ביחידה"];
+    } else if (r.color === "y") {
+      now = ["לבנות אב-טיפוס על מידע לדוגמה, במסלול הירוק"];
+      before = ["למלא כרטיס כלי ובקשת קידום", "לעבור את הבדיקה האוטומטית ואת ועדת הקידום"];
+      if (r.req > r.lv) before.unshift("הכלי דורש רמה של " + R.name + ". אפשר לעבור הכשרה, או לבנות יחד עם מי שכבר נמצא ברמה הזו");
+      who = ["מוביל ה־AI ביחידה, או יחידת ה־CDO"];
+      if (ans.data === 2) who.push("הממונה על הגנת הפרטיות");
+    } else {
+      if (ans.act === 3) {
+        now = ["לא להתקין את הרכיב", "לבדוק אם יש חלופה ברשימת הרכיבים המאושרים"];
+        before = ["רכיב מבחוץ נכנס רק אחרי בדיקה של אבטחת מידע"];
+        who = ["אבטחת מידע", "מוביל ה־AI ביחידה"];
+      } else {
+        now = ["לבנות אב-טיפוס על מידע לדוגמה, בלי המידע הרגיש ובלי פעולות אוטומטיות", "לא להזין מידע אישי, חסוי או חקירתי לכלי"];
+        before = ["כלי כזה נבנה רק בתהליך מלא של אגף הטכנולוגיה, דרך ועדת הקידום"];
+        who = ["יחידת ה־CDO, שתתאם עם אגף הטכנולוגיה"];
+        if (ans.data === 2) who.push("הממונה על הגנת הפרטיות");
+      }
+    }
+    const li = (a) => a.map((x) => "<li>" + x + "</li>").join("");
+    stage.innerHTML =
+      '<div class="result enter">' +
+        '<div class="verdict ' + r.color + '"><span class="small">הכלי שתיארתם</span><span class="vt">' + T[0] + "</span><span>" + T[1] + "</span>" +
+        (r.why.length ? '<span class="small">מה קבע: ' + r.why.join(", ") + "</span>" : "") + "</div>" +
+        '<div class="res-body">' +
+          '<p>הרמה שלכם: <span class="badge">' + L.name + "</span>" + (r.req > r.lv ? ' · הכלי דורש: <span class="badge">' + R.name + "</span>" : "") + "</p>" +
+          '<div class="kv"><h3>מה אפשר לעשות עכשיו</h3><ul>' + li(now) + "</ul></div>" +
+          '<div class="kv"><h3>מה צריך לפני הצעד הבא</h3><ul>' + li(before) + "</ul></div>" +
+          '<div class="kv"><h3>למי פונים</h3><ul>' + li(who) + '</ul><p class="small" style="margin-top:6px">פרטי הפנייה בחלק <a href="#contact">למי פונים</a>.</p></div>' +
+        "</div></div>";
+    back.hidden = false; restart.hidden = false;
+    if (!reduce) $("#start").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  back.addEventListener("click", () => { if (step > 0) { step = Math.min(step, QS.length) - 1; renderQ(); } });
+  restart.addEventListener("click", () => { for (const k in ans) delete ans[k]; step = 0; setNeedle(0, "ענו על השאלות, והמחוג יראה לאן הכלי שלכם שייך"); renderQ(); });
+  renderQ();
+
+  /* ---------- ladder ---------- */
+  const ladder = $("#ladder"), det = $("#rungdetail");
+  function showLevel(i) {
+    const L = LEVELS[i];
+    [...ladder.children].forEach((b, n) => b.setAttribute("aria-expanded", String(n === i)));
+    det.innerHTML =
+      "<div><h3>" + L.name + '</h3><p class="small">' + L.who + "</p></div>" +
+      "<div><h3>מה מקבלים</h3><ul>" + L.get.map((x) => "<li>" + x + "</li>").join("") + "</ul></div>" +
+      "<div><h3>מה התנאי</h3><ul>" + L.need.map((x) => "<li>" + x + "</li>").join("") + "</ul></div>" +
+      "<div><h3>הצעד הבא</h3><p>" + L.next + "</p></div>";
+  }
+  LEVELS.forEach((L, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "rung l" + (i + 1); b.setAttribute("aria-controls", "rungdetail");
+    b.innerHTML = '<span class="rn">' + L.name + '</span><span class="rs">' + L.who + "</span>";
+    b.addEventListener("click", () => showLevel(i));
+    ladder.appendChild(b);
+  });
+  showLevel(0);
+
+  /* ---------- tool finder ---------- */
+  const TOOLS = [
+    { task: "לנסח ולסכם", name: "JustAIBot", lv: "כל עובד", light: "g",
+      what: "הצ'אטבוט הארגוני של המשרד. מנסח מכתבים, מסכם מסמכים ועונה על שאלות.",
+      tip: "כתבו מה אתם צריכים, למי זה מיועד ובאיזה אורך. אחר כך בקשו תיקונים.",
+      warn: "בדקו כל עובדה ומספר לפני שמשתמשים בתוצר." },
+    { task: "נוסחאות וניתוח טבלה", name: "Gemini ב־Google Sheets", lv: "כל עובד", light: "g",
+      what: "מסביר נוסחאות, כותב נוסחה מתיאור במילים ומסכם טבלה.",
+      tip: "תארו את העמודות ואת מה שאתם רוצים לקבל, למשל \"ספירת תיקים לפי חודש\".",
+      warn: "עבדו על נתונים פומביים או לדוגמה. נתונים אמיתיים הם מסלול צהוב." },
+    { task: "טופס או אפליקציה קטנה", name: "AppSheet עם Gemini", lv: "מאיץ AI", light: "y",
+      what: "בונה אפליקציה מתיאור של תהליך עבודה: טבלאות, שדות ומסכים, בלי קוד.",
+      tip: "תארו את התהליך מההתחלה עד הסוף: מי ממלא, מה ממלאים, מי מאשר.",
+      warn: "הנתונים לדוגמה שהכלי מייצר אינם נכונים. מחקו אותם לפני שימוש." },
+    { task: "לוח נתונים", name: "Looker Studio", lv: "מאיץ AI", light: "y",
+      what: "בונה לוח נתונים עם גרפים מגיליון או ממקור נתונים.",
+      tip: "התחילו משאלה אחת שהלוח צריך לענות עליה, ורק אחר כך הוסיפו גרפים.",
+      warn: "שיתוף לוח עם נתונים אמיתיים דורש רישום ואישור." },
+    { task: "אוטומציה בין מיילים ומסמכים", name: "Google Workspace Studio", lv: "מאיץ AI", light: "y",
+      what: "יוצר תהליכים אוטומטיים מתיאור במילים, למשל שמירת קבצים מצורפים בתיקייה ורישומם בגיליון.",
+      tip: "התחילו מתבנית קיימת והריצו קודם על דוגמה קטנה.",
+      warn: "תהליך ששולח מיילים או משנה קבצים לבד הוא כלי שפועל לבד: צריך אישור." },
+    { task: "אב-טיפוס של עמוד או מחשבון", name: "Canvas ב־Gemini", lv: "מאיץ AI", light: "g",
+      what: "בונה עמוד אינטראקטיבי או מחשבון ממשפט אחד, ומשפר אותו בשיחה.",
+      tip: "בקשו גרסה פשוטה קודם, ואז הוסיפו יכולות אחת אחת.",
+      warn: "רק מידע פומבי או לדוגמה. אב-טיפוס אינו כלי מאושר לשימוש." },
+    { task: "ניתוח נתונים בקוד", name: "Colab Enterprise עם סוכן הנתונים (נימבוס)", lv: "מוביל AI", light: "y",
+      what: "כותב ומריץ קוד Python לניתוח, ניקוי והצגה של נתונים, ומבקש אישור לכל שלב.",
+      tip: "בקשו מהסוכן להסביר כל שלב לפני שמאשרים אותו.",
+      warn: "בארגז החול בלבד, ועל נתונים שאושרו." },
+    { task: "כלי שלם עם קוד", name: "סוכני קוד: Gemini CLI, Claude Code, Kiro", lv: "מוביל AI", light: "y",
+      what: "כותבים, מריצים ומתקנים קוד של כלי שלם לפי הוראות במילים.",
+      tip: "כתבו קודם מסמך קצר של מה הכלי צריך לעשות, ותנו לסוכן לעבוד לפיו.",
+      warn: "בארגז החול בלבד, בלי סיסמאות, ובלי רכיבים שאינם ברשימה המאושרת." },
+    { task: "כלי שמתחבר למערכות המשרד", name: "AI Factory ואגף הטכנולוגיה", lv: "עובדי טד\"ם", light: "y",
+      what: "כלי שקורא או כותב במערכות המשרד נבנה ומוטמע בתהליך מלא.",
+      tip: "הגישו את הרעיון או את אב-הטיפוס דרך מוביל ה־AI ביחידה.",
+      warn: "לא מחברים לבד כלי למערכת של המשרד." },
+  ];
+  const chips = $("#chips"), tool = $("#tool");
+  const LT = { g: "מותר", y: "מותנה ברישום ואישור", r: "אסור" };
+  function showTool(i) {
+    const t = TOOLS[i];
+    [...chips.children].forEach((c, n) => c.setAttribute("aria-pressed", String(n === i)));
+    tool.innerHTML =
+      '<div style="display:grid;gap:12px;align-content:start">' +
+        '<span class="small">כלי לדוגמה</span><span class="tname">' + t.name + "</span>" +
+        '<div class="tmeta"><span class="badge">מתאים מרמת ' + t.lv + '</span><span class="light ' + t.light + '">' + LT[t.light] + "</span></div>" +
+        "<p>" + t.what + "</p></div>" +
+      '<div style="display:grid;gap:14px;align-content:start">' +
+        '<div class="tip"><h3>איך עובדים נכון</h3><p>' + t.tip + "</p></div>" +
+        '<div class="warn"><h3>שימו לב</h3><p>' + t.warn + "</p></div></div>";
+    if (!reduce) { tool.classList.remove("enter"); void tool.offsetWidth; tool.classList.add("enter"); }
+  }
+  TOOLS.forEach((t, i) => {
+    const c = document.createElement("button");
+    c.type = "button"; c.className = "chip"; c.textContent = t.task;
+    c.addEventListener("click", () => showTool(i));
+    chips.appendChild(c);
+  });
+  showTool(0);
+
+  /* ---------- nav highlight ---------- */
+  const links = [...document.querySelectorAll("nav.tabs a")];
+  const secs = links.map((a) => document.querySelector(a.getAttribute("href")));
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver((es) => {
+      es.forEach((e) => { if (e.isIntersecting) { links.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id)); } });
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    secs.forEach((s) => s && io.observe(s));
+  }
+})();
+</script>
+</body>
+</html>
